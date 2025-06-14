@@ -1,60 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maps Ceritanya</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Routing Map</title>
 
-  <!-- Leaflet CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-  <!-- Leaflet Control Geocoder (Search) -->
+  <!-- Leaflet Control Geocoder -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
+  <!-- Leaflet Routing Machine -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+
   <style>
-    #map {
-      height: 100vh;
-      margin: 0;
-      padding: 0;
-      z-index: 0;
+    body, html { margin: 0; padding: 0; height: 100%; }
+    #map { height: 90vh; }
+    #form-container {
+      padding: 10px;
+      background: #f0f0f0;
     }
-    .leaflet-control-geocoder {
-      z-index: 1000;
-      background: white;
-      padding: 4px;
-      border-radius: 4px;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
-    }
-    body, html {
-      margin: 0;
-      padding: 0;
+    input, button {
+      padding: 5px;
+      margin: 5px 0;
+      width: 100%;
+      font-size: 1em;
     }
   </style>
-  
 </head>
 <body>
-  <div id="map" style="height: 500px;"></div>
 
-  <script>
-    // Inisialisasi peta
-    var map = L.map('map').setView([-6.2, 106.8], 13);
+<div id="form-container">
+  <input type="text" id="start" placeholder="Alamat Asal (contoh: Monas, Jakarta)" />
+  <input type="text" id="end" placeholder="Alamat Tujuan (contoh: UI, Depok)" />
+  <button onclick="searchRoute()">Cari Rute</button>
+</div>
 
-    // Tambahkan layer OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+<div id="map"></div>
 
-    // Tambahkan marker default
-    L.marker([-6.2, 106.8]).addTo(map)
-      .bindPopup('Halo, ini Jakarta!')
-      .openPopup();
+<script>
+  // Inisialisasi Peta
+  const map = L.map('map').setView([-6.2, 106.8], 12);
 
-    // Tambahkan fitur pencarian alamat
-    L.Control.geocoder({
-      defaultMarkGeocode: true
-    }).addTo(map);
-  </script>
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Routing control
+  let control;
+
+  // Fungsi Geocoding untuk mengubah alamat menjadi koordinat
+  function geocodeAddress(address) {
+    return new Promise((resolve, reject) => {
+      L.Control.Geocoder.nominatim().geocode(address, results => {
+        if (results.length > 0) {
+          resolve(results[0].center);
+        } else {
+          reject("Alamat tidak ditemukan: " + address);
+        }
+      });
+    });
+  }
+
+  // Fungsi pencarian rute
+  async function searchRoute() {
+    const startAddress = document.getElementById('start').value;
+    const endAddress = document.getElementById('end').value;
+
+    try {
+      const startLatLng = await geocodeAddress(startAddress);
+      const endLatLng = await geocodeAddress(endAddress);
+
+      if (control) map.removeControl(control); // Hapus rute sebelumnya
+
+      control = L.Routing.control({
+        waypoints: [startLatLng, endLatLng],
+        routeWhileDragging: false,
+        showAlternatives: true,
+        lineOptions: {
+          styles: [{ color: 'blue', opacity: 0.7, weight: 6 }]
+        },
+        createMarker: function(i, wp) {
+          return L.marker(wp.latLng).bindPopup(i === 0 ? "Asal" : "Tujuan");
+        }
+      }).addTo(map);
+    } catch (error) {
+      alert(error);
+    }
+  }
+</script>
+
 </body>
 </html>
