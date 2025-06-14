@@ -12,6 +12,27 @@
   <!-- Leaflet Control Geocoder (Search) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+  <style>
+    #map {
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      z-index: 0;
+    }
+    .leaflet-control-geocoder {
+      z-index: 1000;
+      background: white;
+      padding: 4px;
+      border-radius: 4px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  
 </head>
 <body>
   <div id="map" style="height: 500px;"></div>
