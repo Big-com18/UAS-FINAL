@@ -3,22 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Routing Map tanpa Mapbox</title>
+  <title>Routing with ORS</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-  <!-- Leaflet Control Geocoder -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+  <!-- Geocoder -->
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-
-  <!-- Leaflet Routing Machine -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
   <style>
-    body, html { margin: 0; padding: 0; height: 100%; }
+    html, body { height: 100%; margin: 0; }
     #map { height: 90vh; }
     #form-container {
       padding: 10px;
@@ -26,20 +22,18 @@
     }
     input, button {
       padding: 5px;
-      margin: 5px 0;
       width: 100%;
-      font-size: 1em;
+      margin: 5px 0;
     }
   </style>
 </head>
 <body>
 
 <div id="form-container">
-  <input type="text" id="start" placeholder="Alamat Asal (contoh: Monas, Jakarta)" />
-  <input type="text" id="end" placeholder="Alamat Tujuan (contoh: UI, Depok)" />
-  <button onclick="searchRoute()">Cari Rute</button>
+  <input type="text" id="start" placeholder="Alamat Asal" />
+  <input type="text" id="end" placeholder="Alamat Tujuan" />
+  <button onclick="findRoute()">Cari Rute</button>
 </div>
-
 <div id="map"></div>
 
 <script>
@@ -49,9 +43,10 @@
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  let control;
+  let routeLine;
+  const apiKey = 'YOUR_ORS_API_KEY'; // 🔑 Ganti dengan API key OpenRouteService kamu
 
-  function geocodeAddress(address) {
+  function geocode(address) {
     return new Promise((resolve, reject) => {
       L.Control.Geocoder.nominatim().geocode(address, results => {
         if (results.length > 0) {
@@ -63,33 +58,46 @@
     });
   }
 
-  async function searchRoute() {
-    const startAddress = document.getElementById('start').value;
-    const endAddress = document.getElementById('end').value;
+  async function findRoute() {
+    const startText = document.getElementById('start').value;
+    const endText = document.getElementById('end').value;
 
     try {
-      const startLatLng = await geocodeAddress(startAddress);
-      const endLatLng = await geocodeAddress(endAddress);
+      const start = await geocode(startText);
+      const end = await geocode(endText);
 
-      if (control) map.removeControl(control);
+      if (routeLine) {
+        map.removeLayer(routeLine);
+      }
 
-      control = L.Routing.control({
-        waypoints: [startLatLng, endLatLng],
-        router: L.Routing.osrmv1({
-          serviceUrl: 'https://router.project-osrm.org/route/v1'
-        }),
-        routeWhileDragging: false,
-        showAlternatives: true,
-        lineOptions: {
-          styles: [{ color: 'green', opacity: 0.7, weight: 6 }]
+      // Fetch route from OpenRouteService
+      const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}`;
+      const body = {
+        coordinates: [[start.lng, start.lat], [end.lng, end.lat]]
+      };
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': apiKey,
+          'Content-Type': 'application/json'
         },
-        createMarker: function(i, wp) {
-          return L.marker(wp.latLng).bindPopup(i === 0 ? "Asal" : "Tujuan");
-        }
-      }).addTo(map);
+        body: JSON.stringify(body)
+      });
 
-    } catch (error) {
-      alert(error);
+      const data = await response.json();
+      const coords = data.features[0].geometry.coordinates;
+      const latlngs = coords.map(([lng, lat]) => [lat, lng]);
+
+      routeLine = L.polyline(latlngs, { color: 'blue', weight: 5 }).addTo(map);
+      map.fitBounds(routeLine.getBounds());
+
+      // Marker asal dan tujuan
+      L.marker(start).addTo(map).bindPopup('Asal').openPopup();
+      L.marker(end).addTo(map).bindPopup('Tujuan');
+
+    } catch (err) {
+      alert(err);
     }
   }
 </script>
