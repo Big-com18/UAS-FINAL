@@ -3,15 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Routing with ORS</title>
+  <title>Routing Tanpa API Key</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-  <!-- Geocoder -->
-  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <!-- Leaflet Control Geocoder -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+  <!-- Leaflet Routing Machine -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
 
   <style>
     html, body { height: 100%; margin: 0; }
@@ -30,9 +34,9 @@
 <body>
 
 <div id="form-container">
-  <input type="text" id="start" placeholder="Alamat Asal" />
-  <input type="text" id="end" placeholder="Alamat Tujuan" />
-  <button onclick="findRoute()">Cari Rute</button>
+  <input type="text" id="start" placeholder="Alamat Asal (contoh: Monas, Jakarta)" />
+  <input type="text" id="end" placeholder="Alamat Tujuan (contoh: UI, Depok)" />
+  <button onclick="searchRoute()">Cari Rute</button>
 </div>
 <div id="map"></div>
 
@@ -43,10 +47,9 @@
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  let routeLine;
-  const apiKey = 'YOUR_ORS_API_KEY'; // 🔑 Ganti dengan API key OpenRouteService kamu
+  let routingControl;
 
-  function geocode(address) {
+  function geocodeAddress(address) {
     return new Promise((resolve, reject) => {
       L.Control.Geocoder.nominatim().geocode(address, results => {
         if (results.length > 0) {
@@ -58,43 +61,30 @@
     });
   }
 
-  async function findRoute() {
-    const startText = document.getElementById('start').value;
-    const endText = document.getElementById('end').value;
+  async function searchRoute() {
+    const startAddress = document.getElementById('start').value;
+    const endAddress = document.getElementById('end').value;
 
     try {
-      const start = await geocode(startText);
-      const end = await geocode(endText);
+      const startCoords = await geocodeAddress(startAddress);
+      const endCoords = await geocodeAddress(endAddress);
 
-      if (routeLine) {
-        map.removeLayer(routeLine);
-      }
+      if (routingControl) map.removeControl(routingControl);
 
-      // Fetch route from OpenRouteService
-      const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}`;
-      const body = {
-        coordinates: [[start.lng, start.lat], [end.lng, end.lat]]
-      };
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': apiKey,
-          'Content-Type': 'application/json'
+      routingControl = L.Routing.control({
+        waypoints: [startCoords, endCoords],
+        router: L.Routing.osrmv1({
+          serviceUrl: 'https://router.project-osrm.org/route/v1'
+        }),
+        routeWhileDragging: false,
+        showAlternatives: false,
+        lineOptions: {
+          styles: [{ color: 'blue', weight: 6, opacity: 0.7 }]
         },
-        body: JSON.stringify(body)
-      });
-
-      const data = await response.json();
-      const coords = data.features[0].geometry.coordinates;
-      const latlngs = coords.map(([lng, lat]) => [lat, lng]);
-
-      routeLine = L.polyline(latlngs, { color: 'blue', weight: 5 }).addTo(map);
-      map.fitBounds(routeLine.getBounds());
-
-      // Marker asal dan tujuan
-      L.marker(start).addTo(map).bindPopup('Asal').openPopup();
-      L.marker(end).addTo(map).bindPopup('Tujuan');
+        createMarker: function (i, wp) {
+          return L.marker(wp.latLng).bindPopup(i === 0 ? "Asal" : "Tujuan");
+        }
+      }).addTo(map);
 
     } catch (err) {
       alert(err);
