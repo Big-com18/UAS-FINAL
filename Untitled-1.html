@@ -3,15 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Routing Tanpa API Key</title>
+  <title>Peta Rute Manual (Drag Marker)</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-  <!-- Leaflet Control Geocoder -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
   <!-- Leaflet Routing Machine -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
@@ -19,78 +15,52 @@
 
   <style>
     html, body { height: 100%; margin: 0; }
-    #map { height: 90vh; }
-    #form-container {
-      padding: 10px;
-      background: #f0f0f0;
-    }
-    input, button {
-      padding: 5px;
-      width: 100%;
-      margin: 5px 0;
-    }
+    #map { height: 100%; }
   </style>
 </head>
 <body>
-
-<div id="form-container">
-  <input type="text" id="start" placeholder="Alamat Asal (contoh: Monas, Jakarta)" />
-  <input type="text" id="end" placeholder="Alamat Tujuan (contoh: UI, Depok)" />
-  <button onclick="searchRoute()">Cari Rute</button>
-</div>
 <div id="map"></div>
 
 <script>
-  const map = L.map('map').setView([-6.2, 106.8], 12);
+  const map = L.map('map').setView([-6.2, 106.8], 12); // Jakarta
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  let routingControl;
+  // Buat marker Asal dan Tujuan
+  const startMarker = L.marker([-6.2, 106.8], { draggable: true }).addTo(map).bindPopup("Asal").openPopup();
+  const endMarker = L.marker([-6.3, 106.85], { draggable: true }).addTo(map).bindPopup("Tujuan");
 
-  function geocodeAddress(address) {
-    return new Promise((resolve, reject) => {
-      L.Control.Geocoder.nominatim().geocode(address, results => {
-        if (results.length > 0) {
-          resolve(results[0].center);
-        } else {
-          reject("Alamat tidak ditemukan: " + address);
-        }
-      });
-    });
-  }
+  let routingControl = null;
 
-  async function searchRoute() {
-    const startAddress = document.getElementById('start').value;
-    const endAddress = document.getElementById('end').value;
+  function drawRoute() {
+    const startLatLng = startMarker.getLatLng();
+    const endLatLng = endMarker.getLatLng();
 
-    try {
-      const startCoords = await geocodeAddress(startAddress);
-      const endCoords = await geocodeAddress(endAddress);
-
-      if (routingControl) map.removeControl(routingControl);
-
-      routingControl = L.Routing.control({
-        waypoints: [startCoords, endCoords],
-        router: L.Routing.osrmv1({
-          serviceUrl: 'https://router.project-osrm.org/route/v1'
-        }),
-        routeWhileDragging: false,
-        showAlternatives: false,
-        lineOptions: {
-          styles: [{ color: 'blue', weight: 6, opacity: 0.7 }]
-        },
-        createMarker: function (i, wp) {
-          return L.marker(wp.latLng).bindPopup(i === 0 ? "Asal" : "Tujuan");
-        }
-      }).addTo(map);
-
-    } catch (err) {
-      alert(err);
+    if (routingControl) {
+      map.removeControl(routingControl);
     }
-  }
-</script>
 
+    routingControl = L.Routing.control({
+      waypoints: [startLatLng, endLatLng],
+      router: L.Routing.osrmv1({
+        serviceUrl: 'https://router.project-osrm.org/route/v1'
+      }),
+      createMarker: () => null, // Hilangkan marker dari routing machine
+      lineOptions: {
+        styles: [{ color: 'blue', weight: 5, opacity: 0.7 }]
+      },
+      addWaypoints: false
+    }).addTo(map);
+  }
+
+  // Buat rute pertama kali
+  drawRoute();
+
+  // Update rute saat marker digeser
+  startMarker.on('dragend', drawRoute);
+  endMarker.on('dragend', drawRoute);
+</script>
 </body>
 </html>
