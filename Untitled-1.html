@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Routing Map</title>
+  <title>Routing Map with Mapbox</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -16,8 +16,9 @@
   <!-- Leaflet Routing Machine -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
-  <!-- Mapbox routing plugin for Leaflet Routing Machine -->
-  <script src="https://unpkg.com/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
+
+  <!-- Mapbox Routing Plugin -->
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
   <style>
     body, html { margin: 0; padding: 0; height: 100%; }
@@ -53,8 +54,8 @@
 
   let control;
 
-  // Ganti ini dengan Mapbox Access Token milikmu
-  const MAPBOX_TOKEN = "YOUR_MAPBOX_ACCESS_TOKEN";
+  // 🔑 Ganti ini dengan token Mapbox kamu
+  const MAPBOX_TOKEN = "pk.eyJ1IjoiYOURS_HERE";
 
   function geocodeAddress(address) {
     return new Promise((resolve, reject) => {
