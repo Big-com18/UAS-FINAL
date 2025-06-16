@@ -16,6 +16,8 @@
   <!-- Leaflet Routing Machine -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+  <!-- Mapbox routing plugin for Leaflet Routing Machine -->
+  <script src="https://unpkg.com/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
 
   <style>
     body, html { margin: 0; padding: 0; height: 100%; }
@@ -43,17 +45,17 @@
 <div id="map"></div>
 
 <script>
-  // Inisialisasi Peta
   const map = L.map('map').setView([-6.2, 106.8], 12);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // Routing control
   let control;
 
-  // Fungsi Geocoding untuk mengubah alamat menjadi koordinat
+  // Ganti ini dengan Mapbox Access Token milikmu
+  const MAPBOX_TOKEN = "YOUR_MAPBOX_ACCESS_TOKEN";
+
   function geocodeAddress(address) {
     return new Promise((resolve, reject) => {
       L.Control.Geocoder.nominatim().geocode(address, results => {
@@ -66,7 +68,6 @@
     });
   }
 
-  // Fungsi pencarian rute
   async function searchRoute() {
     const startAddress = document.getElementById('start').value;
     const endAddress = document.getElementById('end').value;
@@ -75,10 +76,11 @@
       const startLatLng = await geocodeAddress(startAddress);
       const endLatLng = await geocodeAddress(endAddress);
 
-      if (control) map.removeControl(control); // Hapus rute sebelumnya
+      if (control) map.removeControl(control);
 
       control = L.Routing.control({
         waypoints: [startLatLng, endLatLng],
+        router: L.Routing.mapbox(MAPBOX_TOKEN),
         routeWhileDragging: false,
         showAlternatives: true,
         lineOptions: {
@@ -88,6 +90,7 @@
           return L.marker(wp.latLng).bindPopup(i === 0 ? "Asal" : "Tujuan");
         }
       }).addTo(map);
+
     } catch (error) {
       alert(error);
     }
