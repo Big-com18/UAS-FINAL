@@ -15,8 +15,7 @@
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
 
 
-</head>
-<body>
+  <!-- Header -->
   <header class="top-bar">
     <input type="text" placeholder="Masukkan tujuan..." class="input-box" />
     <div class="input-row">
@@ -26,17 +25,37 @@
     </div>
   </header>
 
+  <!-- Konten -->
   <main class="content">
     <div class="card">
-      <div class="map-container"><div id="map1"></div></div>
+      <div class="card-text">
+        <h4>Rute ke Kampus</h4>
+        <p>Perjalanan dari rumah menuju kampus dengan rute tercepat dan terdekat.</p>
+      </div>
+      <div class="map-container">
+        <div id="map1"></div>
+      </div>
     </div>
+
     <hr />
+
     <div class="card">
-      <div class="map-container"><div id="map2"></div></div>
+      <div class="card-text">
+        <h4>Rute ke Stasiun</h4>
+        <p>Alternatif rute untuk menuju stasiun terdekat dari lokasi kamu.</p>
+      </div>
+      <div class="map-container">
+        <div id="map2"></div>
+      </div>
     </div>
   </main>
 
+  <!-- Footer -->
   <footer class="bottom-bar"></footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
 
   <script>
     function createMiniMap(mapId, start, end) {
@@ -75,7 +94,7 @@
       endMarker.on('dragend', drawRoute);
     }
 
-    // Buat dua peta mini
+    // Inisialisasi dua peta mini
     createMiniMap('map1', [-6.2, 106.8], [-6.3, 106.85]);
     createMiniMap('map2', [-6.21, 106.81], [-6.29, 106.83]);
   </script>
