@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Peta Rute Manual (Drag Marker)</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tampilan Jadwal</title>
+  <link rel="stylesheet" href="Menu1.css">
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -14,53 +15,82 @@
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
 
   <style>
-    html, body { height: 100%; margin: 0; }
-    #map { height: 100%; }
+    .map-container {
+      width: 100%;
+      height: 200px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    #map1, #map2 {
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
 <body>
-<div id="map"></div>
+  <header class="top-bar">
+    <input type="text" placeholder="Masukkan tujuan..." class="input-box" />
+    <div class="input-row">
+      <input type="text" class="date-box" value="Selasa, 17 Jun 2025" readonly />
+      <input type="text" class="time-box" value="09:00" readonly />
+      <input type="text" class="blank-box" />
+    </div>
+  </header>
 
-<script>
-  const map = L.map('map').setView([-6.2, 106.8], 12); // Jakarta
+  <main class="content">
+    <div class="card">
+      <div class="map-container">
+        <div id="map1"></div>
+      </div>
+    </div>
+    <hr />
+    <div class="card">
+      <div class="map-container">
+        <div id="map2"></div>
+      </div>
+    </div>
+  </main>
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+  <footer class="bottom-bar"></footer>
 
-  // Buat marker Asal dan Tujuan
-  const startMarker = L.marker([-6.2, 106.8], { draggable: true }).addTo(map).bindPopup("Asal").openPopup();
-  const endMarker = L.marker([-6.3, 106.85], { draggable: true }).addTo(map).bindPopup("Tujuan");
+  <script>
+    function createMap(mapId, start, end) {
+      const map = L.map(mapId).setView(start, 13);
 
-  let routingControl = null;
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
 
-  function drawRoute() {
-    const startLatLng = startMarker.getLatLng();
-    const endLatLng = endMarker.getLatLng();
+      const startMarker = L.marker(start, { draggable: true }).addTo(map).bindPopup("Asal").openPopup();
+      const endMarker = L.marker(end, { draggable: true }).addTo(map).bindPopup("Tujuan");
 
-    if (routingControl) {
-      map.removeControl(routingControl);
+      let routingControl = null;
+
+      function drawRoute() {
+        if (routingControl) {
+          map.removeControl(routingControl);
+        }
+
+        routingControl = L.Routing.control({
+          waypoints: [startMarker.getLatLng(), endMarker.getLatLng()],
+          router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+          createMarker: () => null,
+          lineOptions: { styles: [{ color: 'blue', weight: 5, opacity: 0.7 }] },
+          addWaypoints: false
+        }).addTo(map);
+      }
+
+      drawRoute();
+
+      startMarker.on('dragend', drawRoute);
+      endMarker.on('dragend', drawRoute);
     }
 
-    routingControl = L.Routing.control({
-      waypoints: [startLatLng, endLatLng],
-      router: L.Routing.osrmv1({
-        serviceUrl: 'https://router.project-osrm.org/route/v1'
-      }),
-      createMarker: () => null, // Hilangkan marker dari routing machine
-      lineOptions: {
-        styles: [{ color: 'blue', weight: 5, opacity: 0.7 }]
-      },
-      addWaypoints: false
-    }).addTo(map);
-  }
-
-  // Buat rute pertama kali
-  drawRoute();
-
-  // Update rute saat marker digeser
-  startMarker.on('dragend', drawRoute);
-  endMarker.on('dragend', drawRoute);
-</script>
+    // Inisialisasi dua peta
+    createMap('map1', [-6.2, 106.8], [-6.3, 106.85]);
+    createMap('map2', [-6.21, 106.81], [-6.29, 106.83]);
+  </script>
 </body>
 </html>
