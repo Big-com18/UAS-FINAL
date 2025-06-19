@@ -58,22 +58,36 @@ body {
 
 .card {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
 }
 
-.map-image {
-  width: 100px;
+.card-text {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.map-container {
+  width: 150px;
   height: 100px;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+#map1, #map2 {
+  width: 100%;
+  height: 100%;
 }
 
 hr {
   border: none;
   border-top: 1px solid #eee;
-  margin: 20px 0;
+  margin: 10px 0;
 }
 
 .bottom-bar {
@@ -85,47 +99,3 @@ hr {
   bottom: 0;
   width: 100%;
 }
-    .map-container {
-      width: 150px;
-      height: 100px;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-left: auto;
-    }
-
-    #map1, #map2 {
-      width: 100%;
-      height: 100%;
-    }
-
-    .card {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 20px;
-      padding: 10px;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid #eee;
-      margin: 10px 0;
-    }
-
-    .top-bar, .bottom-bar {
-      background-color: #00b3a6;
-      padding: 15px;
-      border-radius: 0 0 20px 20px;
-    }
-
-    .input-box, .date-box, .time-box, .blank-box {
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      margin: 5px;
-    }
-
-    .input-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-    }
