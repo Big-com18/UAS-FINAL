@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tampilan Jadwal</title>
   <link rel="stylesheet" href="Menu1.css">
 
@@ -15,16 +15,18 @@
   <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
 
   <style>
-    /* Tambahan supaya map muncul */
+    /* Tambahan agar peta tampil baik */
     #map1, #map2 {
       height: 200px;
       width: 100%;
       border-radius: 10px;
+    }
+
+    .map-container {
       margin-top: 10px;
     }
   </style>
 </head>
-
 <body>
   <!-- Header -->
   <header class="top-bar">
@@ -64,7 +66,7 @@
   <!-- Footer -->
   <footer class="bottom-bar"></footer>
 
-  <!-- Leaflet Routing Logic -->
+  <!-- Script Inisialisasi Peta -->
   <script>
     function createMiniMap(mapId, start, end) {
       const map = L.map(mapId, {
@@ -102,9 +104,9 @@
       endMarker.on('dragend', drawRoute);
     }
 
-    // Inisialisasi dua peta mini dengan info berbeda
-    createMiniMap('map1', [-6.2, 106.8], [-6.3, 106.85]);     // Rute ke Kampus
-    createMiniMap('map2', [-6.21, 106.81], [-6.29, 106.83]);  // Rute ke Stasiun
+    // Inisialisasi dua peta mini dengan data berbeda
+    createMiniMap('map1', [-6.2, 106.8], [-6.3, 106.85]);      // Rute ke Kampus
+    createMiniMap('map2', [-6.21, 106.81], [-6.29, 106.83]);   // Rute ke Stasiun
   </script>
 </body>
 </html>
